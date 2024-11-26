@@ -317,7 +317,7 @@ def max_pixel_sums(train_loader, settings):
 def eval_rho(net):
     rho = 1
     for layer in net.all_layers:
-        rho = rho * torch.norm(layer.weight).item()
+        rho *= torch.norm(layer.weight).item() if layer.weight else 1
 
     return rho
 
@@ -352,6 +352,8 @@ def lip_constant(layer):
         reshaped_weight = weight.view(weight.shape[0], -1)
     elif isinstance(layer, nn.Linear):
         reshaped_weight = layer.weight.data
+    elif isinstance(layer, nn.MaxPool2d) | isinstance(layer, nn.AvgPool2d):
+        return torch.abs([1])
     else:
         raise ValueError('layer type not recognized')
 
