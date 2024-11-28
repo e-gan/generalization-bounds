@@ -1,5 +1,6 @@
 import yaml
 from pathlib import Path
+from data_utils import get_train_dataloader, get_test_dataloader
 import os 
 from tqdm import tqdm
 
@@ -91,29 +92,23 @@ def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, v
     #save model
 
 def get_data_loaders(config):
-
-    ################################################
-    ##### get_datasets needs to be implemented #####
-    ################################################
-
     # should return two tensors, train_dataset and valid_dataset
     # should be normalized already
-    # train_dataset, valid_dataset = get_datasets(config["data"])
+    train_loader = get_train_dataloader(dataset=config["data"]["dataset"],
+                                        batch_size=config["training"]["batch_size"], 
+                                        loss_fn = config["training"]["loss_fn"],
+                                        corruption_type=config["data"]["corruption_type"],
+                                        corruption_prob=config["data"]["corruption_prob"],
+                                        num_classes=config["data"]["num_classes"],
+                                        num_workers=config["data"]["num_workers"])
+    
+    test_loader = get_test_dataloader(dataset=config["data"]["dataset"],
+                                        batch_size=config["training"]["batch_size"], 
+                                        loss_fn = config["training"]["loss_fn"],
+                                        num_classes=config["data"]["num_classes"],
+                                        num_workers=config["data"]["num_workers"])
 
-    #then delete this:
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.ToTensor())
-    valid_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.ToTensor())
-
-    loss_fn = config["training"]["loss_fn"]
-    #need to onehot encode labels for MSE loss    
-    if loss_fn == 'MSE':
-        train_dataset.targets = torch.nn.functional.one_hot(torch.tensor(train_dataset.targets), num_classes=config["data"]["num_classes"]).float()
-        valid_dataset.targets = torch.nn.functional.one_hot(torch.tensor(valid_dataset.targets), num_classes=config["data"]["num_classes"]).float()
-
-    train_loader = DataLoader(train_dataset, batch_size=config["training"]["batch_size"], shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=config["training"]["batch_size"], shuffle=False)
-        
-    return train_loader, valid_loader
+    return train_loader, test_loader
 
 def get_loss_fn(config):
     loss_fn = config["training"]["loss_fn"]

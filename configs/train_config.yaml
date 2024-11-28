@@ -19,9 +19,7 @@ training:
 data:
   num_classes: 10
   dataset: CIFAR10
-  augmentation:
-    random_crop: True
-    crop_padding: 4
-    random_flip: True
-    normalize_mean: [0.5, 0.5, 0.5]
-    normalize_std: [0.5, 0.5, 0.5]
+  # one of: random_labels, partially_corrupted_labels, shuffle_pixels, random_pixels, gaussian_images
+  corruption_type: 'random_labels'
+  corruption_prob: 0.6
+  num_workers: 1
