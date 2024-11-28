@@ -1,0 +1,27 @@
+# train_config.yaml
+model:
+  name: AlexNet
+
+training:
+  batch_size: 64
+  learning_rate: 0.01
+  lr_scheduler: None
+  num_epochs: 20
+  save_epochs: 0
+  loss_fn: MSE
+  regularization: L2
+  weight_decay: 0.0001
+  optimizer: SGD
+  momentum: 0.9
+  device: "cuda" # Change to "cpu" if no GPU is available
+
+# Sarah: change whatever should be changed here
+data:
+  num_classes: 10
+  dataset: CIFAR10
+  augmentation:
+    random_crop: True
+    crop_padding: 4
+    random_flip: True
+    normalize_mean: [0.5, 0.5, 0.5]
+    normalize_std: [0.5, 0.5, 0.5]

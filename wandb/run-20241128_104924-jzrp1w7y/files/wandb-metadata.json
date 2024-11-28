@@ -1,0 +1,287 @@
+{
+    "os": "Linux-4.18.0-372.9.1.el8.x86_64-x86_64-with-glibc2.10",
+    "python": "3.8.16",
+    "heartbeatAt": "2024-11-28T15:49:25.436622",
+    "startedAt": "2024-11-28T15:49:24.905626",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/om2/user/jackking/generalization-bounds/our_train.py",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/e-gan/generalization-bounds.git",
+        "commit": "0418fb5865d915d5de4b7b160ad3af72aa7860ac"
+    },
+    "email": null,
+    "root": "/net/vast-storage/scratch/vast/evlab/jackking/generalization-bounds",
+    "host": "node055",
+    "username": "jackking",
+    "executable": "/om2/user/jackking/anaconda/envs/modular_transformers/bin/python",
+    "cpu_count": 24,
+    "cpu_count_logical": 48,
+    "cpu_freq": {
+        "current": 2782.9094375,
+        "min": 2900.0,
+        "max": 2900.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.866,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.867,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 1707.409,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.868,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.867,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2499.867,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        },
+        {
+            "current": 2900.0,
+            "min": 2900.0,
+            "max": 2900.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 134.6646842956543,
+            "used": 9.420146942138672
+        }
+    },
+    "gpu": "NVIDIA GeForce GTX 1080 Ti",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce GTX 1080 Ti",
+            "memory_total": 11811160064
+        }
+    ],
+    "memory": {
+        "total": 251.52625274658203
+    }
+}
