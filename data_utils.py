@@ -39,68 +39,70 @@ class CorruptedCIFAR10(datasets.CIFAR10):
         # Set corruption transformation based on input type
         self.corruption_type = corruption_type
         self.corruption_prob = corruption_prob
-        self.perm = None
 
         # Corruption transformation initialization
         if corruption_type == "random_labels":
-            self.corruption_transform = self.random_labels
+            self.corrupt_labels(1)
         elif corruption_type == "partially_corrupted_labels":
-            self.corruption_transform = self.partially_corrupted_labels
+            self.corrupt_labels(self.corruption_prob)
         elif corruption_type == "gaussian_images":
-            self.corruption_transform = self.gaussian_images
+            self.gaussian()
         elif corruption_type == "random_pixels":
-            self.corruption_transform = self.random_pixels
+            self.random_pixels()
         elif corruption_type == "shuffle_pixels":
-            self.corruption_transform = self.shuffle_pixels
-        else:
-            self.corruption_transform = None
+            self.shuffle_pixels()
 
 
-    def random_labels(self, image, label):
-      """ Replace the label with a random class label. """
-      new_label = torch.randint(0, 10, (1,)).item()  # Random class label from 0 to 9
-      return image, new_label
+    def corrupt_labels(self, corrupt_prob):
+        labels = np.array(self.targets)
+        np.random.seed(12345)
+        mask = np.random.rand(len(labels)) <= corrupt_prob
+        rnd_labels = np.random.choice(10, mask.sum())
+        labels[mask] = rnd_labels
+        # we need to explicitly cast the labels from npy.int64 to
+        # builtin int type, otherwise pytorch will fail...
+        labels = [int(x) for x in labels]
 
-    def shuffle_pixels(self, image, label):
-        """ Shuffle the pixels of the image using a fixed permutation. """
-        if self.perm is None:
-            self.perm = np.random.permutation(28 * 28 * 3)  # Generate a fixed permutation for all images
-        flat = image.reshape(-1)  # Flatten the image
-        shuffled = flat[self.perm].reshape(3, 28, 28)  # Apply the permutation and reshape
-        return torch.tensor(shuffled, dtype=torch.float32), label  # Convert to tensor
+        self.targets = labels
 
-    def random_pixels(self, image, label):
+    def random_pixels(self):
         """ Shuffle the pixels of the image independently. """
-        perm = np.random.permutation(28 * 28 * 3)  # Unique permutation per image
-        flat = image.reshape(-1)  # Flatten the image
-        shuffled = flat[perm].reshape(3, 28, 28)  # Apply the permutation and reshape
-        return torch.tensor(shuffled, dtype=torch.float32), label  # Convert to tensor
+        def randomize(image):
+            perm = np.random.permutation(32 * 32 * 3)  # Unique permutation per image
+            flat = image.flatten() # Flatten the image
+            shuffled = flat[perm].reshape(32, 32, 3)  # Apply the permutation and reshape
+            return shuffled
+        new_data = np.array([randomize(image) for image in self.data])
+        self.data = new_data
 
-    def gaussian_images(self, image, label):
+    def shuffle_pixels(self):
+        """ Shuffle the pixels of the image using a fixed permutation. """
+        perm = np.random.permutation(32 * 32 * 3)  # fixed permutation
+        def shuffle(image):
+            flat = image.flatten()  # Flatten the image
+            shuffled = flat[perm].reshape(32, 32, 3)  # Apply the permutation and reshape
+            return shuffled
+        new_data = np.array([shuffle(image) for image in self.data])
+        self.data = new_data
+
+
+    def gaussian(self):
         """ Replace the image with Gaussian noise having the same mean and variance. """
-        mean = image.mean(axis=(0, 1))
-        std = image.std(axis=(0, 1))
-        gaussian_data = np.random.normal(loc=mean, scale=std, size=image.shape)
-        return torch.tensor(gaussian_data, dtype=torch.float32), label  # Convert to tensor
+        def add_gaussian(image):
+            mean = image.mean(axis=(0, 1))  # Compute per-channel mean
+            std = image.std(axis=(0, 1))   # Compute per-channel standard deviation
+            gaussian_data = np.random.normal(loc=mean, scale=std, size=image.shape)
 
-    def partially_corrupted_labels(self, image, label):
-        """ Corrupt the label with a probability `corruption_prob`. """
-        if np.random.rand() < self.corruption_prob:
-            new_label = np.random.randint(0, 10)
-            while new_label == label:
-                new_label = np.random.randint(0, 10)
-            return image, new_label
-        return image, label
+            # Ensure data is within the valid range [0, 255] and type uint8
+            gaussian_data = np.clip(gaussian_data, 0, 255).astype(np.uint8)
+            return gaussian_data
 
-    def __getitem__(self, index):
-        """
-        Override __getitem__ to apply all the transformations (crop, corruption, tensor conversion, whitening).
-        """
-        image, label = super().__getitem__(index)
-        if self.train and self.corruption_transform:
-            image, label = self.corruption_transform(image, label)
+        # Generate Gaussian noise for all images in the dataset
+        new_data = np.array([add_gaussian(image) for image in self.data])
 
-        return image, label
+        # Update the dataset
+        self.data = new_data
+
     
 def examine_dataset(dataset):
     """
@@ -158,7 +160,7 @@ def check_normalization(dataset):
     print(f"Mean per channel (should be close to 0 if normalized): {mean}")
     print(f"Standard deviation per channel (should be close to 1 if normalized): {std}")
 
-def visualize_dataset(dataset, num_samples=10, original_dataset=None):
+def visualize_dataset(dataset, num_samples=10, original_dataset=None, title=""):
     """
     Visualize images and labels from a given dataset.
 
@@ -186,16 +188,17 @@ def visualize_dataset(dataset, num_samples=10, original_dataset=None):
         # Compare to the original label if provided
         if original_dataset:
             original_label = original_dataset.targets[idx]
-            title = f"Corrupted: {label}\nOriginal: {original_label}"
+            subtitle = f"Corrupted: {label}\nOriginal: {original_label}"
         else:
-            title = f"Label: {label}"
+            subtitle = f"Label: {label}"
         
         # Plot the image
         axes[i].imshow(image)  # Image is now a PIL image
         axes[i].axis('off')
-        axes[i].set_title(title, fontsize=8)
+        axes[i].set_title(subtitle, fontsize=8)
     
     plt.tight_layout()
+    fig.suptitle(title)
     plt.show()
 
 
@@ -262,9 +265,18 @@ if __name__ == "__main__":
     gaussian_dataset = CorruptedCIFAR10(root="./data", train=True, download=True, corruption_type="gaussian_images")
     test_dataset = CorruptedCIFAR10(root="./data", train=False, download=True)
     print("created datasets")
+    datasets = [original_dataset, random_dataset, partial_dataset, shuffled_dataset, random_pixel_dataset, gaussian_dataset, test_dataset]
 
     train_loader = get_train_dataloader(corruption_type='random_labels')
     test_loader = get_test_dataloader()
     print("created dataloaders")
     print("generating visualizations")
-    visualize_dataset(dataset=random_dataset, original_dataset=original_dataset)
+    visualize_dataset(dataset=random_dataset, original_dataset=original_dataset, title="Random Labels")
+    visualize_dataset(dataset=random_pixel_dataset, original_dataset=original_dataset, title="Random Pixels")
+    visualize_dataset(dataset=partial_dataset, original_dataset=original_dataset, title="Corrupted Labels by 0.6")
+    visualize_dataset(dataset=gaussian_dataset, original_dataset=original_dataset, title="Gaussian Inputs")
+    visualize_dataset(dataset=shuffled_dataset, original_dataset=original_dataset, title="Shuffled Pixels")
+
+    print("checking normalization")
+    for d in datasets:
+        check_normalization(d)
