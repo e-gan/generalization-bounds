@@ -1,3 +1,8 @@
-data/*
+data/
 !data/.gitignore
 venv/
+slurm*
+saved_models/
+export_models/
+outputs/
+multirun/

@@ -1,0 +1,70 @@
+wandb_version: 1
+
+model:
+  desc: null
+  value:
+    name: AlexNet
+training:
+  desc: null
+  value:
+    batch_size: 128
+    learning_rate: 0.01
+    lr_scheduler: StepLR
+    num_epochs: 50
+    save_epochs: 0
+    loss_fn: MSE
+    regularization: None
+    weight_decay: 0.0001
+    optimizer: SGD
+    momentum: 0.9
+    device: cuda
+data:
+  desc: null
+  value:
+    num_classes: 10
+    dataset: CIFAR10
+    augmentation:
+      random_crop: true
+      crop_padding: 4
+      random_flip: true
+      normalize_mean:
+      - 0.5
+      - 0.5
+      - 0.5
+      normalize_std:
+      - 0.5
+      - 0.5
+      - 0.5
+_wandb:
+  desc: null
+  value:
+    python_version: 3.8.16
+    cli_version: 0.16.4
+    framework: huggingface
+    huggingface_version: 4.46.2
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1732813251.0
+    t:
+      1:
+      - 1
+      - 11
+      - 41
+      - 49
+      - 55
+      2:
+      - 1
+      - 11
+      - 41
+      - 49
+      - 55
+      3:
+      - 2
+      - 16
+      - 23
+      4: 3.8.16
+      5: 0.16.4
+      6: 4.46.2
+      8:
+      - 5
+      13: linux-x86_64

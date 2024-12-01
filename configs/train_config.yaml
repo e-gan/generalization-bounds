@@ -1,15 +1,28 @@
 # train_config.yaml
+
+# # defaults:
+# #   - hydra/launcher: submitit_local
+
+# # hydra:
+# #   launcher:
+# #     cpus_per_task: 6
+# #     gpus_per_node: 1
+# #     mem_gb: 30
+
 model:
   name: AlexNet
 
 training:
-  batch_size: 64
-  learning_rate: 0.01
+  batch_size: 128
+  learning_rate: 0.1
   lr_scheduler: None
-  num_epochs: 20
-  save_epochs: 0
+  lr_scheduler_params:
+    step_size: 1
+    gamma: 0.95
+  num_epochs: 400
+  save_epochs: 10
   loss_fn: MSE
-  regularization: L2
+  regularization: None
   weight_decay: 0.0001
   optimizer: SGD
   momentum: 0.9
@@ -20,6 +33,6 @@ data:
   num_classes: 10
   dataset: CIFAR10
   # one of: random_labels, partially_corrupted_labels, shuffle_pixels, random_pixels, gaussian_images
-  corruption_type: 'random_labels'
-  corruption_prob: 0.6
+  corruption_type: partially_corrupted_labels
+  corruption_prob: 1
   num_workers: 1

@@ -217,10 +217,6 @@ def get_train_dataloader(dataset="CIFAR10",
     if dataset=="CIFAR10":
         train_dataset = CorruptedCIFAR10(root="./data", train=True, download=True, corruption_type=corruption_type, corruption_prob=corruption_prob)
 
-    #need to onehot encode labels for MSE loss    
-    if loss_fn == 'MSE':
-        train_dataset.targets = torch.nn.functional.one_hot(torch.tensor(train_dataset.targets), num_classes=num_classes).float()
-
     if bound_num_batches is not None:  # sampling for the bound
         sampler = RandomSampler(train_dataset,
                                 replacement=True,
@@ -248,9 +244,6 @@ def get_test_dataloader(dataset="CIFAR10",
     """
     if dataset=="CIFAR10":
         test_dataset = CorruptedCIFAR10(root="./data", train=False, download=True)
-
-    if loss_fn == 'MSE':
-        test_dataset.targets = torch.nn.functional.one_hot(torch.tensor(test_dataset.targets), num_classes=num_classes).float()
 
     test_loader = DataLoader(test_dataset, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
 

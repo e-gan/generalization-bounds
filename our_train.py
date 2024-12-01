@@ -2,6 +2,8 @@ import yaml
 from pathlib import Path
 from data_utils import get_train_dataloader, get_test_dataloader
 import os 
+import hydra
+from omegaconf import DictConfig, OmegaConf
 from tqdm import tqdm
 
 import torch
@@ -11,7 +13,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from models.our_alexnet import AlexNet
 from models.inception import InceptionNet
-import os
+import numpy as np
 
 import wandb
 
@@ -32,7 +34,7 @@ def load_config():
 
 
 # Evaluation function
-def evaluate(model, valid_loader, loss_fn, device):
+def evaluate(model, valid_loader, loss_fn, num_classes, device):
     model.eval()  # Set model to evaluation mode
     correct = 0
     total = 0
@@ -41,28 +43,44 @@ def evaluate(model, valid_loader, loss_fn, device):
         for inputs, labels in valid_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
-            loss += loss_fn(outputs, labels).item()
+
             _, predicted = torch.max(outputs.data, 1)
-            if labels.size(1) > 1:
-                #labels are onehot encoded
-                labels = torch.argmax(labels, dim=1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+
+            #one hot encode labels for MSE loss
+            if len(labels.shape) == 1:
+                labels = torch.nn.functional.one_hot(labels, num_classes=num_classes).float()
+            loss += loss_fn(outputs, labels).item()
+
     accuracy = correct / total
     loss = loss / len(valid_loader)
     return loss, accuracy
 
-def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, save_epochs=10):
-    
+def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, num_classes, device, save_epochs=10):
+    last_5_train_accuracies = [0, 0, 0, 0, 0]
+    #make model directory
+    save_dir = os.path.join(script_dir, f"saved_models/{run_name}")
+    os.makedirs(save_dir, exist_ok=True)
     for epoch in tqdm(range(num_epochs)):
         model.train()
+        correct = 0
+        total = 0
         torch.cuda.empty_cache()
         for step, (inputs, labels) in tqdm(enumerate(train_loader)):
             optimizer.zero_grad()
             inputs, labels = inputs.to(device), labels.to(device)
-            
             # forward pass
             outputs = model(inputs)
+
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            #one hot encode labels for MSE loss
+            if len(labels.shape) == 1:
+                labels = torch.nn.functional.one_hot(labels, num_classes=num_classes).float()
+        
             loss = loss_fn(outputs, labels)
             if reg_function is not None:
                 loss += reg_function(model)
@@ -75,18 +93,31 @@ def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, v
             
         if lr_scheduler is not None:
             lr_scheduler.step()
+        
+        train_accuracy = correct / total
             
         # evaluate
-        val_loss, val_accuracy = evaluate(model, valid_loader, loss_fn, device)
+        val_loss, val_accuracy = evaluate(model, valid_loader, loss_fn, num_classes, device)
         wandb.log({"epoch": epoch,
                     "val_loss": val_loss,
-                    "val_accuracy": val_accuracy})
+                    "val_accuracy": val_accuracy,
+                    "train_accuracy": train_accuracy})
 
-        #save model
-        if save_epochs != 0 and epoch % save_epochs == 0:
-            continue
-            #save logic
+        #save model if train accuracy is not increasing
+        # if last_5_train_accuracies:
+        #     if train_accuracy <= np.mean(last_5_train_accuracies):
+        #         torch.save(model.state_dict(), os.path.join(save_dir, f"epoch_{epoch}.pt"))
+        #         last_5_train_accuracies = [] #don't save model again
+        #     else:
+        #         last_5_train_accuracies.pop(0)
+        #         last_5_train_accuracies.append(train_accuracy)
 
+        #save model every save_epochs
+        if epoch % save_epochs == 0:
+            torch.save(model.state_dict(), os.path.join(save_dir, f"epoch_{epoch}.pt"))
+    
+    #save final model
+    torch.save(model.state_dict(), os.path.join(save_dir, f"final.pt"))
     wandb.finish()
 
     #save model
@@ -108,6 +139,7 @@ def get_data_loaders(config):
                                         num_classes=config["data"]["num_classes"],
                                         num_workers=config["data"]["num_workers"])
 
+
     return train_loader, test_loader
 
 def get_loss_fn(config):
@@ -119,20 +151,19 @@ def get_loss_fn(config):
     elif loss_fn == 'l1':
         return nn.L1Loss()
 
-def get_lr_scheduler(config):
-    #NOTE: "we do not need to change the learning rate schedule [for fitting random labels]" (Zhang et al., 2017)
-    # however, for regular labels they have a decay factor of 0.95 every epoch
+def get_lr_scheduler(config, optimizer, step_size=1, gamma=0.95):
+    #NOTE: They have a decay factor of 0.95 every epoch
     # They use an initial learning rate of 0.1 for Inception and 0.01 for AlexNet
 
     lr_scheduler = config["training"]["lr_scheduler"]
     if lr_scheduler == 'StepLR':
-        return optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.95)
+        return optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
     elif lr_scheduler == 'ReduceLROnPlateau':
         return optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
     elif lr_scheduler == None:
         return None
     
-def get_optimizer(config):
+def get_optimizer(config, model):
     optimizer = config["training"]["optimizer"]
     lr = config["training"]["learning_rate"]
     
@@ -175,25 +206,39 @@ def get_model(config):
         return AlexNet(num_classes=config["data"]["num_classes"])
     elif config["model"]["name"] == "InceptionNet":
         return InceptionNet(num_classes=config["data"]["num_classes"])
+    
+@hydra.main(config_path="configs", config_name="train_config")
+def main(config: DictConfig):
+    """
+    Main training function. Hydra automatically loads the configuration into `config`.
+    """
 
-if __name__ == "__main__":
-    config = load_config()
+    wandb.login(key="5aee75a09d43e7f6c9ec80e003687a8a3a820b08")
 
-    wandb.login(key="your_api_key_here")
+    config = OmegaConf.to_container(config, resolve=True)
 
     device = torch.device(config["training"]["device"] if torch.cuda.is_available() else "cpu")
+
+    step_size = config["training"]["lr_scheduler_params"]["step_size"]
+    gamma = config["training"]["lr_scheduler_params"]["gamma"]
 
     train_loader, valid_loader = get_data_loaders(config)
     model = get_model(config).to(device)
     loss_fn = get_loss_fn(config)
-    lr_scheduler = get_lr_scheduler(config)
     reg_function = get_regularizer(config)
-    optimizer = get_optimizer(config)
+    optimizer = get_optimizer(config, model)
+    lr_scheduler = get_lr_scheduler(config, optimizer, step_size, gamma)
 
     num_epochs = config["training"]["num_epochs"]
     save_epochs = config["training"]["save_epochs"]
+    num_classes = config["data"]["num_classes"]
 
     wandb.init(project="generalization_bounds", config=config)
     run_name = wandb.run.name
+    print(f"Run name: {run_name}")
 
-    train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, save_epochs)
+    train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, num_classes, device, save_epochs)
+
+
+if __name__ == "__main__":
+    main()
