@@ -24,7 +24,7 @@ class PerImageWhitening:
     
     
 class CorruptedCIFAR10(datasets.CIFAR10):
-    def __init__(self, root, train=True, download=True, corruption_type=None, corruption_prob=0):
+    def __init__(self, root, train=True, download=True, corruption_type=None, corruption_prob=0,    seed=42):
         """
         Custom CIFAR10 class that applies a specified transformation (random labels, partially corrupted, etc.)
         to the dataset before applying other transformations like ToTensor, PerImageWhitening, CenterCrop.
@@ -35,7 +35,7 @@ class CorruptedCIFAR10(datasets.CIFAR10):
             PerImageWhitening()        # Apply per-image whitening
         ])
         super().__init__(root=root, transform=self.image_transforms, train=train, download=download)
-
+        self.seed = seed
         # Set corruption transformation based on input type
         self.corruption_type = corruption_type
         self.corruption_prob = corruption_prob
@@ -51,11 +51,15 @@ class CorruptedCIFAR10(datasets.CIFAR10):
             self.random_pixels()
         elif corruption_type == "shuffle_pixels":
             self.shuffle_pixels()
-
+    
+    def set_seed(self):
+        """Set random seeds for reproducibility."""
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
 
     def corrupt_labels(self, corrupt_prob):
+        self.set_seed()
         labels = np.array(self.targets)
-        np.random.seed(12345)
         mask = np.random.rand(len(labels)) <= corrupt_prob
         rnd_labels = np.random.choice(10, mask.sum())
         labels[mask] = rnd_labels
@@ -67,6 +71,7 @@ class CorruptedCIFAR10(datasets.CIFAR10):
 
     def random_pixels(self):
         """ Shuffle the pixels of the image independently. """
+        self.set_seed()
         def randomize(image):
             perm = np.random.permutation(32 * 32 * 3)  # Unique permutation per image
             flat = image.flatten() # Flatten the image
@@ -77,6 +82,7 @@ class CorruptedCIFAR10(datasets.CIFAR10):
 
     def shuffle_pixels(self):
         """ Shuffle the pixels of the image using a fixed permutation. """
+        self.set_seed()
         perm = np.random.permutation(32 * 32 * 3)  # fixed permutation
         def shuffle(image):
             flat = image.flatten()  # Flatten the image
@@ -88,6 +94,7 @@ class CorruptedCIFAR10(datasets.CIFAR10):
 
     def gaussian(self):
         """ Replace the image with Gaussian noise having the same mean and variance. """
+        self.set_seed()
         def add_gaussian(image):
             mean = image.mean(axis=(0, 1))  # Compute per-channel mean
             std = image.std(axis=(0, 1))   # Compute per-channel standard deviation
