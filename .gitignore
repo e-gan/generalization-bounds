@@ -6,3 +6,8 @@ saved_models/
 export_models/
 outputs/
 multirun/
+wandb/
+export_weightnorm_models/
+*.zip
+export_models.zip
+export_weightnorm_models.zip

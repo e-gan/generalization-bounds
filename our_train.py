@@ -62,6 +62,12 @@ def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, v
     #make model directory
     save_dir = os.path.join(script_dir, f"saved_models/{run_name}")
     os.makedirs(save_dir, exist_ok=True)
+    #save datasets into directory
+    with open(os.path.join(save_dir, "train_dataset.pt"), "wb") as f:
+        torch.save(train_loader.dataset, f)
+    with open(os.path.join(save_dir, "valid_dataset.pt"), "wb") as f:
+        torch.save(valid_loader.dataset, f)
+
     for epoch in tqdm(range(num_epochs)):
         model.train()
         correct = 0
@@ -241,4 +247,7 @@ def main(config: DictConfig):
 
 
 if __name__ == "__main__":
+    #set seed
+    torch.manual_seed(0)
+    np.random.seed(0)
     main()

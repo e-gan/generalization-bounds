@@ -19,7 +19,7 @@ training:
   lr_scheduler_params:
     step_size: 1
     gamma: 0.95
-  num_epochs: 400
+  num_epochs: 500
   save_epochs: 10
   loss_fn: MSE
   regularization: None
@@ -33,6 +33,6 @@ data:
   num_classes: 10
   dataset: CIFAR10
   # one of: random_labels, partially_corrupted_labels, shuffle_pixels, random_pixels, gaussian_images
-  corruption_type: partially_corrupted_labels
+  corruption_type: None
   corruption_prob: 1
   num_workers: 1

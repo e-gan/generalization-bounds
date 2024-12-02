@@ -26,4 +26,6 @@ echo $(which python)
 
 ##python "${SU_HOME}/our_train.py" training.learning_rate=0.1 training.lr_scheduler=StepLR data.corruption_type=None training.batch_size=64 model.name=AlexNet training.num_epochs=400 training.lr_scheduler_params.gamma=0.95
 
-python "${SU_HOME}/our_train.py" data.corruption_prob=0.9
+##python "${SU_HOME}/our_train.py" ###-m data.corruption_prob=0.1,0.25,0.5,0.75,1.0
+
+python "${SU_HOME}/our_train.py" ##data.corruption_prob=0.25

@@ -1,26 +1,27 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.utils.weight_norm as weight_norm
 
 class AlexNet(nn.Module):
     def __init__(self, num_classes=10):
         super(AlexNet, self).__init__()
         
         # Unclear what out_channels should actually be in both modules
-        # Unclear how to choose paramteres for LocalResponseNorm
+        # Unclear how to choose parameters for LocalResponseNorm
 
         # ReLU is used in original alex net but not 100% specified in the paper
         # Dropout is used in original AlexNet but we aren't using it here as specified in the paper
 
         # Module 1
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=5, stride=1, padding=2)
+        self.conv1 = weight_norm(nn.Conv2d(in_channels=3, out_channels=64, kernel_size=5, stride=1, padding=2),dim=None)
         self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2)  # Overlapping pooling
-        self.norm1 = nn.LocalResponseNorm(size=5, alpha=1e-4, beta=0.75, k=2.0)
+        # self.norm1 = nn.LocalResponseNorm(size=5, alpha=1e-4, beta=0.75, k=2.0)
         
         # Module 2
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=192, kernel_size=5, stride=1, padding=2)
+        self.conv2 = weight_norm(nn.Conv2d(in_channels=64, out_channels=192, kernel_size=5, stride=1, padding=2), dim=None)
         self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2)
-        self.norm2 = nn.LocalResponseNorm(size=5, alpha=1e-4, beta=0.75, k=2.0)
+        # self.norm2 = nn.LocalResponseNorm(size=5, alpha=1e-4, beta=0.75, k=2.0)
         
         # Fully connected layers (fc1 initialized later)
         self.fc1 = None  # Placeholder
@@ -31,12 +32,12 @@ class AlexNet(nn.Module):
         # Module 1
         x = F.relu(self.conv1(x))
         x = self.pool1(x)
-        x = self.norm1(x)
+        # x = self.norm1(x)
         
         # Module 2
         x = F.relu(self.conv2(x))
         x = self.pool2(x)
-        x = self.norm2(x)
+        # x = self.norm2(x)
         
         # Flatten for fully connected layers
         x = torch.flatten(x, 1)
