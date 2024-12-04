@@ -28,4 +28,4 @@ echo $(which python)
 
 ##python "${SU_HOME}/our_train.py" ###-m data.corruption_prob=0.1,0.25,0.5,0.75,1.0
 
-python "${SU_HOME}/our_train.py" ##data.corruption_prob=0.25
+python "${SU_HOME}/our_train.py" model.name=PoggioNet data.corruption_type=None training.num_epochs=500 

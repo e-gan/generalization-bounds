@@ -23,8 +23,8 @@ class AlexNet(nn.Module):
         self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2)
         # self.norm2 = nn.LocalResponseNorm(size=5, alpha=1e-4, beta=0.75, k=2.0)
         
-        # Fully connected layers (fc1 initialized later)
-        self.fc1 = None  # Placeholder
+        # Fully connected layers
+        self.fc1 = nn.Linear(in_features=192 * 6 * 6, out_features=384)
         self.fc2 = nn.Linear(in_features=384, out_features=192)
         self.fc3 = nn.Linear(in_features=192, out_features=num_classes)
     
@@ -41,10 +41,6 @@ class AlexNet(nn.Module):
         
         # Flatten for fully connected layers
         x = torch.flatten(x, 1)
-
-        # Dynamically initialize fc1 during the first forward pass
-        if self.fc1 is None:
-            self.fc1 = nn.Linear(x.shape[1], 384).to(x.device)
         
         # Fully connected layers
         x = F.relu(self.fc1(x))

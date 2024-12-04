@@ -10,7 +10,9 @@
 # #     mem_gb: 30
 
 model:
-  name: AlexNet
+  name: PoggioNet
+  num_layers: 3
+  width: 200
 
 training:
   batch_size: 128
@@ -19,20 +21,20 @@ training:
   lr_scheduler_params:
     step_size: 1
     gamma: 0.95
-  num_epochs: 500
+  num_epochs: 300
   save_epochs: 10
   loss_fn: MSE
-  regularization: None
+  regularization: L2
   weight_decay: 0.0001
   optimizer: SGD
   momentum: 0.9
   device: "cuda" # Change to "cpu" if no GPU is available
 
-# Sarah: change whatever should be changed here
 data:
   num_classes: 10
+  image_size: 28
   dataset: CIFAR10
   # one of: random_labels, partially_corrupted_labels, shuffle_pixels, random_pixels, gaussian_images
-  corruption_type: None
+  corruption_type: partially_corrupted_labels
   corruption_prob: 1
   num_workers: 1

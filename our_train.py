@@ -13,6 +13,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from models.our_alexnet import AlexNet
 from models.inception import InceptionNet
+from models.poggio_net import PoggioNet
 import numpy as np
 
 import wandb
@@ -62,12 +63,6 @@ def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, v
     #make model directory
     save_dir = os.path.join(script_dir, f"saved_models/{run_name}")
     os.makedirs(save_dir, exist_ok=True)
-    #save datasets into directory
-    with open(os.path.join(save_dir, "train_dataset.pt"), "wb") as f:
-        torch.save(train_loader.dataset, f)
-    with open(os.path.join(save_dir, "valid_dataset.pt"), "wb") as f:
-        torch.save(valid_loader.dataset, f)
-
     for epoch in tqdm(range(num_epochs)):
         model.train()
         correct = 0
@@ -144,7 +139,10 @@ def get_data_loaders(config):
                                         loss_fn = config["training"]["loss_fn"],
                                         num_classes=config["data"]["num_classes"],
                                         num_workers=config["data"]["num_workers"])
-
+    
+    image_size = test_loader.dataset[0][0].shape[-1]
+    if image_size != config["data"]["image_size"]:
+        raise ValueError(f"Image size mismatch. Model image size is {config['data']['image_size']} but dataset image size is {image_size}")
 
     return train_loader, test_loader
 
@@ -212,6 +210,13 @@ def get_model(config):
         return AlexNet(num_classes=config["data"]["num_classes"])
     elif config["model"]["name"] == "InceptionNet":
         return InceptionNet(num_classes=config["data"]["num_classes"])
+    elif config["model"]["name"] == "PoggioNet":
+        return PoggioNet(
+                        width=config["model"]["width"], 
+                        num_layers=config["model"]["num_layers"], 
+                        num_output_classes=config["data"]["num_classes"], 
+                        image_size=config["data"]["image_size"])  
+                    
     
 @hydra.main(config_path="configs", config_name="train_config")
 def main(config: DictConfig):
@@ -230,6 +235,7 @@ def main(config: DictConfig):
 
     train_loader, valid_loader = get_data_loaders(config)
     model = get_model(config).to(device)
+    print(model)
     loss_fn = get_loss_fn(config)
     reg_function = get_regularizer(config)
     optimizer = get_optimizer(config, model)
@@ -248,6 +254,4 @@ def main(config: DictConfig):
 
 if __name__ == "__main__":
     #set seed
-    torch.manual_seed(0)
-    np.random.seed(0)
     main()
