@@ -63,7 +63,7 @@ def eval_rho2(net):
     rho *= conv2_weight.norm().item()
     rho *= net['fc1.weight'].norm(dim=1).max().item()
     rho *= net['fc2.weight'].norm(dim=1).max().item()
-    rho *= net['fc3.weight'].norm(dim=1).max().item()
+    rho *= net['fc3.weight'].norm().max().item()
     return rho
 
 def eval_rho3(net):
@@ -80,7 +80,7 @@ def eval_rho3(net):
     rho *= conv2_weight.norm(dim=(2,3)).max().item()
     rho *= net['fc1.weight'].norm(dim=1).max().item()
     rho *= net['fc2.weight'].norm(dim=1).max().item()
-    rho *= net['fc3.weight'].norm(dim=1).max().item()
+    rho *= net['fc3.weight'].norm().max().item()
     return rho
 
 def eval_rho4(net,threshold):
@@ -118,8 +118,7 @@ def bound(rho, net, training_loader, max_pixel_sums):
     n = len(training_loader.dataset)
     k = 10
     depth = 7
-    degs = [5**2,3**2,5**2,3**2, 192*6*6, 384] #, 192]
-    # degs = [5, 3, 5, 3, 1, 1, 1]
+    degs = [5**2,3**2,5**2,3**2, 192*6*6, 384]
     delta = 0.001
     deg_prod = np.prod(degs)
     mult1 = (2 ** 1.5) * (rho + 1) / n
@@ -147,7 +146,7 @@ def eval_rho2_poggio(net):
         v = net[f'conv{weight_idx}.weight_v']
         weight = g * (v / v.norm())
         rho *= weight.norm().item()
-    rho *= net['fc.weight'].norm(dim=1).max().item()
+    rho *= net['fc.weight'].norm().max().item()
     return rho
 
 def eval_rho3_poggio(net):
@@ -157,7 +156,7 @@ def eval_rho3_poggio(net):
         v = net[f'conv{weight_idx}.weight_v']
         weight = g * (v / v.norm())
         rho *= weight.norm(dim=(2, 3)).max().item()
-    rho *= net['fc.weight'].norm(dim=1).max().item()
+    rho *= net['fc.weight'].norm().max().item()
     return rho
 
 def eval_rho4_poggio(net, threshold):
