@@ -5,7 +5,7 @@ import os
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from tqdm import tqdm
-
+import random
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -58,10 +58,9 @@ def evaluate(model, valid_loader, loss_fn, num_classes, device):
     loss = loss / len(valid_loader)
     return loss, accuracy
 
-def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, num_classes, device, save_epochs=10):
+def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, save_dir, num_classes, device, save_epochs=10):
     last_5_train_accuracies = [0, 0, 0, 0, 0]
     #make model directory
-    save_dir = os.path.join(script_dir, f"saved_models/{run_name}")
     os.makedirs(save_dir, exist_ok=True)
     for epoch in tqdm(range(num_epochs)):
         model.train()
@@ -118,7 +117,7 @@ def train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, v
             torch.save(model.state_dict(), os.path.join(save_dir, f"epoch_{epoch}.pt"))
     
     #save final model
-    torch.save(model.state_dict(), os.path.join(save_dir, f"final.pt"))
+    torch.save(model.state_dict(), os.path.join(save_dir, f"epoch_{num_epochs}.pt"))
     wandb.finish()
 
     #save model
@@ -234,6 +233,13 @@ def main(config: DictConfig):
     gamma = config["training"]["lr_scheduler_params"]["gamma"]
 
     train_loader, valid_loader = get_data_loaders(config)
+
+    #reset seed so we can get different models
+    seed = random.randint(0, 2**32 - 1)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
     model = get_model(config).to(device)
     print(model)
     loss_fn = get_loss_fn(config)
@@ -249,7 +255,15 @@ def main(config: DictConfig):
     run_name = wandb.run.name
     print(f"Run name: {run_name}")
 
-    train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, run_name, num_classes, device, save_epochs)
+    model_name = config["model"]["name"]
+    if not config["data"]["corruption_type"] == "None":
+        type = config["data"]["corruption_type"]
+        prob = config["data"]["corruption_prob"]
+        save_dir = os.path.join(script_dir, f"saved_models/{model_name}/{type}/{prob}/{run_name}")
+    else:
+        save_dir = os.path.join(script_dir, f"saved_models/{model_name}/regular/{run_name}")
+
+    train(model, optimizer, loss_fn, lr_scheduler, reg_function, train_loader, valid_loader, num_epochs, save_dir, num_classes, device, save_epochs)
 
 
 if __name__ == "__main__":

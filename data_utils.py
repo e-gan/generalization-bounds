@@ -46,7 +46,7 @@ class CorruptedCIFAR10(datasets.CIFAR10):
         elif corruption_type == "partially_corrupted_labels":
             self.corrupt_labels(self.corruption_prob)
         elif corruption_type == "gaussian_images":
-            self.gaussian()
+            self.gaussian(self.corruption_prob)
         elif corruption_type == "random_pixels":
             self.random_pixels()
         elif corruption_type == "shuffle_pixels":
@@ -92,17 +92,17 @@ class CorruptedCIFAR10(datasets.CIFAR10):
         self.data = new_data
 
 
-    def gaussian(self):
+    def gaussian(self, corrupt_mag):
         """ Replace the image with Gaussian noise having the same mean and variance. """
         self.set_seed()
         def add_gaussian(image):
             mean = image.mean(axis=(0, 1))  # Compute per-channel mean
             std = image.std(axis=(0, 1))   # Compute per-channel standard deviation
-            gaussian_data = np.random.normal(loc=mean, scale=std, size=image.shape)
+            gaussian_data = np.random.normal(loc=mean, scale=std, size=image.shape) * corrupt_mag
 
             # Ensure data is within the valid range [0, 255] and type uint8
             gaussian_data = np.clip(gaussian_data, 0, 255).astype(np.uint8)
-            return gaussian_data
+            return gaussian_data + image
 
         # Generate Gaussian noise for all images in the dataset
         new_data = np.array([add_gaussian(image) for image in self.data])

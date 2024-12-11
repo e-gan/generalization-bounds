@@ -10,18 +10,18 @@
 # #     mem_gb: 30
 
 model:
-  name: PoggioNet
-  num_layers: 3
-  width: 200
+  name: AlexNet
+  num_layers: 4
+  width: 400
 
 training:
   batch_size: 128
   learning_rate: 0.1
-  lr_scheduler: None
+  lr_scheduler: StepLR
   lr_scheduler_params:
     step_size: 1
     gamma: 0.95
-  num_epochs: 300
+  num_epochs: 500
   save_epochs: 10
   loss_fn: MSE
   regularization: L2
@@ -35,6 +35,6 @@ data:
   image_size: 28
   dataset: CIFAR10
   # one of: random_labels, partially_corrupted_labels, shuffle_pixels, random_pixels, gaussian_images
-  corruption_type: partially_corrupted_labels
+  corruption_type: gaussian_images
   corruption_prob: 1
   num_workers: 1

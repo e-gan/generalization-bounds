@@ -28,4 +28,8 @@ echo $(which python)
 
 ##python "${SU_HOME}/our_train.py" ###-m data.corruption_prob=0.1,0.25,0.5,0.75,1.0
 
-python "${SU_HOME}/our_train.py" model.name=PoggioNet data.corruption_type=None training.num_epochs=500 
+# python "${SU_HOME}/our_train.py" -m model.name=AlexNet data.corruption_type=partially_corrupted_labels training.num_epochs=100 data.corruption_prob=0.9,0.9,0.9
+
+python "${SU_HOME}/our_train.py" -m model.name=PoggioNet data.corruption_type=gaussian_images training.num_epochs=100 data.corruption_prob=0.1,0.25,0.5,0.75,1.0,0.1,0.25,0.5,0.75,1.0,0.1,0.25,0.5,0.75,1.0,0.1,0.25,0.5,0.75,1.0,0.1,0.25,0.5,0.75,1.0
+
+# python "${SU_HOME}/our_train.py" -m model.name=AlexNet data.corruption_type=gaussian_images training.num_epochs=100,100 data.corruption_prob=0.1,0.25,0.5,0.75,1.0 training.regularization=L2
